@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Nava Arcade</title>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HEGKJG4PK7"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-HEGKJG4PK7');</script>
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
@@ -14,6 +16,8 @@
     #dev { background: #253a78; color: #fff; border: 1px solid #7891e7; }
     main { max-width: 1050px; margin: 10px auto; padding: 0 22px 50px; }
     h2 { margin: 16px 0; } #games { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+    .hero { padding: 24px; margin: 4px 0 28px; border: 1px solid #6e87e3; border-radius: 22px; background: linear-gradient(120deg, #263e91, #562b91 55%, #182354); text-align: left; } .hero h2 { margin: 0 0 5px; font-size: 1.75rem; } .hero p { color: #dce6ff; } .hero a { text-decoration: none; }
+    .tools { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin: 12px 0 18px; } .tools input { width:auto; flex:1; min-width:180px; } .filter { background:#253a78; color:#fff; border:1px solid #7891e7; } .filter.on { background:#79f4d2; color:#07221a; }
     .game { min-height: 215px; padding: 22px; border: 1px solid #526cc0; border-radius: 18px; background: linear-gradient(145deg, #1d2b61, #101735); box-shadow: 0 12px 30px #0005; display: flex; flex-direction: column; }
     .empty { padding: 36px 22px; border: 2px dashed #5065ad; border-radius: 18px; text-align: center; color: #c4d0fa; }
     .game .icon { font-size: 3rem; } .game h3 { margin: 14px 0 6px; } .game p { margin: 0 0 18px; color: #c5d1f8; flex: 1; } .game a { text-decoration: none; text-align: center; }
@@ -27,7 +31,9 @@
     <button id="dev">⚙ Developer</button>
   </header>
   <main>
+    <section class="hero"><h2>🎮 Welcome to Nava Arcade</h2><p>New games, new challenges, and a new high score waiting for you.</p><a href="starfall-survivor.html"><button>Play featured game: Starfall Survivor</button></a></section>
     <h2>My Games</h2>
+    <div class="tools"><input id="search" placeholder="Search games..." aria-label="Search games"><button class="filter on" data-type="All">All</button><button class="filter" data-type="Action">Action</button><button class="filter" data-type="Arcade">Arcade</button><button class="filter" data-type="Puzzle">Puzzle</button></div>
     <section id="games"></section>
   </main>
 
@@ -36,16 +42,33 @@
 
   <script>
     const gamesEl = document.querySelector('#games');
-    const savedGames = () => JSON.parse(localStorage.gameHubGames || '[]');
+    const builtInGames = [
+      { name:'Starfall Survivor', file:'starfall-survivor.html', icon:'🌟', type:'Action', description:'Collect starlight and survive the shadows.' },
+      { name:'Space Racer', file:'space-racer.html', icon:'🚀', type:'Action', description:'Dodge asteroids in a fast spaceship.' },
+      { name:'Treasure Clicker', file:'treasure-clicker.html', icon:'💎', type:'Arcade', description:'Earn coins and buy powerful upgrades.' },
+      { name:'Pixel Soccer', file:'pixel-soccer.html', icon:'⚽', type:'Action', description:'Score goals in a pixel match.' },
+      { name:'Zombie Escape', file:'zombie-escape.html', icon:'🧟', type:'Action', description:'Run away and survive the zombies.' },
+      { name:'Snake', file:'snake.html', icon:'🐍', type:'Arcade', description:'Eat fruit and grow your snake.' },
+      { name:'Flappy Nova', file:'flappy-nova.html', icon:'✨', type:'Arcade', description:'Fly through the magic portals.' },
+      { name:'Memory Match', file:'memory-match.html', icon:'🃏', type:'Puzzle', description:'Find all the matching pairs.' },
+      { name:'Tower Defender', file:'tower-defender.html', icon:'🏰', type:'Action', description:'Build towers and protect your base.' }
+    ];
+    const savedGames = () => {
+      const all = [...builtInGames, ...JSON.parse(localStorage.gameHubGames || '[]')];
+      return all.filter((game, index) => index === all.findIndex(first => first.file === game.file));
+    };
     const developerHash = 'c43934ca8aa05c3f9eb8aed769fc02f13f7f92c1d5196ad7abe4b3f78060462f';
-    function render() { const games=savedGames(); gamesEl.innerHTML = games.length ? games.map(game => `<article class="game"><div class="icon">${game.icon || '🎮'}</div><h3>${game.name}</h3><p>${game.description || 'A game made by Anthony.'}</p><a href="${game.file}"><button>Play game</button></a></article>`).join('') : '<div class="empty"><h3>No games yet</h3><p>Click Developer to add your first game.</p></div>'; }
+    let selectedType = 'All';
+    function render() { const query = document.querySelector('#search')?.value.toLowerCase() || ''; const games=savedGames().filter(game => (selectedType === 'All' || game.type === selectedType) && game.name.toLowerCase().includes(query)); gamesEl.innerHTML = games.length ? games.map(game => `<article class="game"><div class="icon">${game.icon || '🎮'}</div><h3>${game.name}</h3><p>${game.description || 'A game made by Nava.'}</p><small>${game.type || 'New game'} · ⭐ Nava pick</small><a href="${game.file}"><button>Play game</button></a></article>`).join('') : '<div class="empty"><h3>No games found</h3><p>Try another search or game type.</p></div>'; }
     async function digest(text) { const bytes = new TextEncoder().encode(text); const hash = await crypto.subtle.digest('SHA-256', bytes); return [...new Uint8Array(hash)].map(b => b.toString(16).padStart(2,'0')).join(''); }
     const login = document.querySelector('#login'), add = document.querySelector('#add'), pass = document.querySelector('#password'), confirm = document.querySelector('#confirm'), error = document.querySelector('#error');
     document.querySelector('#dev').onclick = () => { document.querySelector('#loginTitle').textContent = 'Developer Login'; document.querySelector('#note').textContent = 'Enter your developer password to add a game.'; document.querySelector('#confirmLabel').hidden = true; confirm.hidden = true; pass.value = confirm.value = error.textContent = ''; login.showModal(); pass.focus(); };
     document.querySelector('#cancel').onclick = () => login.close();
     document.querySelector('#continue').onclick = async () => { if (!pass.value) { error.textContent = 'Please type a password.'; return; } const hash = await digest(pass.value); if (hash !== developerHash) { error.textContent = 'That password is not right.'; return; } login.close(); add.showModal(); };
     document.querySelector('#closeAdd').onclick = () => add.close();
-    document.querySelector('#saveGame').onclick = () => { const name = document.querySelector('#gameName').value.trim(), file = document.querySelector('#gameFile').value.trim(); if (!name || !file) return; const games = savedGames(); games.push({ name, file, icon: '🎮', description: 'A game made by Anthony.' }); localStorage.gameHubGames = JSON.stringify(games); add.close(); render(); };
+    document.querySelector('#saveGame').onclick = () => { const name = document.querySelector('#gameName').value.trim(), file = document.querySelector('#gameFile').value.trim(); if (!name || !file) return; const extras = JSON.parse(localStorage.gameHubGames || '[]'); extras.push({ name, file, icon: '🎮', type:'New game', description: 'A game made by Nava.' }); localStorage.gameHubGames = JSON.stringify(extras); add.close(); render(); };
+    document.querySelector('#search').addEventListener('input', render);
+    document.querySelectorAll('.filter').forEach(button => button.onclick = () => { selectedType = button.dataset.type; document.querySelectorAll('.filter').forEach(b => b.classList.toggle('on', b === button)); render(); });
     render();
   </script>
 </body>
